@@ -1,6 +1,6 @@
 import type { Track } from '../../shared/types'
 import { HttpError, type Env } from '../env'
-import { COUNTRY, tidalGet, toTracks, type Document, type Resource } from './tidal'
+import { COUNTRY, tidalGet, toTracks, type Document } from './tidal'
 
 export type TidalCandidate = Track & { id: string }
 
@@ -21,11 +21,16 @@ export async function searchTidalTracks(env: Env, url: URL): Promise<TidalCandid
   }
 
   if (q && q.length <= 200) {
-    const search = await tidalGet(
-      env,
-      `/searchResults/${encodeURIComponent(q)}/relationships/tracks?countryCode=${COUNTRY}`,
-    )
-    const ids = (search.data as Resource[]).slice(0, 8).map((r) => r.id)
+    // Returns one "searchResults" resource whose tracks relationship lists the hits in rank order.
+    // The list is only filled in when tracks are included; those lack artists, hence the second request.
+    const searchQuery = new URLSearchParams({
+      'filter[query]': q,
+      countryCode: COUNTRY,
+      include: 'tracks',
+    })
+    const search = await tidalGet(env, `/searchResults?${searchQuery}`)
+    const results = Array.isArray(search.data) ? search.data[0] : search.data
+    const ids = (results?.relationships?.tracks?.data ?? []).slice(0, 8).map((r) => r.id)
     if (!ids.length) return []
     const query = new URLSearchParams({ countryCode: COUNTRY, include: 'artists' })
     for (const id of ids) query.append('filter[id]', id)

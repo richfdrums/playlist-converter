@@ -19,7 +19,7 @@ const jsonApiHeaders = (token: string) => ({
 export const tidal: Destination = {
   id: 'tidal',
   label: 'TIDAL',
-  searchConcurrency: 3,
+  searchConcurrency: 2,
   oauth: {
     service: 'tidal',
     clientId: import.meta.env.VITE_TIDAL_CLIENT_ID,

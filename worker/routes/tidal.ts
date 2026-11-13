@@ -39,41 +39,53 @@ async function getAppToken(env: Env): Promise<string> {
   return cachedToken.value
 }
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+// TIDAL allows only a short burst of requests (about 5) before answering 429 with a Retry-After
+// of a few seconds, so we wait as told and try again rather than failing the whole playlist.
+const MAX_ATTEMPTS = 6
+
 export async function tidalGet(env: Env, pathAndQuery: string): Promise<Document> {
-  const res = await fetch(`${API}${pathAndQuery}`, {
-    headers: {
-      Authorization: `Bearer ${await getAppToken(env)}`,
-      Accept: 'application/vnd.api+json',
-    },
-  })
-  if (res.status === 404) throw new HttpError(404, 'Not found on Tidal (is the playlist public?)')
-  if (res.status === 429) throw new HttpError(429, 'Tidal is rate limiting us — retrying…')
-  if (!res.ok) throw new HttpError(502, `Tidal API error (${res.status})`)
-  return res.json()
+  for (let attempt = 1; ; attempt++) {
+    const res = await fetch(`${API}${pathAndQuery}`, {
+      headers: {
+        Authorization: `Bearer ${await getAppToken(env)}`,
+        Accept: 'application/vnd.api+json',
+      },
+    })
+    if (res.status === 429 && attempt < MAX_ATTEMPTS) {
+      await sleep((Number(res.headers.get('Retry-After')) || 2) * 1000)
+      continue
+    }
+    if (res.status === 404) throw new HttpError(404, 'Not found on Tidal (is the playlist public?)')
+    if (res.status === 429)
+      throw new HttpError(429, 'TIDAL is busy right now. Try again in a minute.')
+    if (!res.ok) throw new HttpError(502, `Tidal API error (${res.status})`)
+    return res.json()
+  }
 }
 
 export async function getTidalPlaylist(env: Env, id: string): Promise<SourcePlaylist> {
   const playlist = await tidalGet(env, `/playlists/${id}?countryCode=${COUNTRY}`)
   const attrs = (playlist.data as Resource).attributes ?? {}
 
-  // 1. Walk the cursor-paginated items relationship to get track IDs in playlist order.
-  const trackIds: string[] = []
-  let next: string | undefined = `/playlists/${id}/relationships/items?countryCode=${COUNTRY}`
-  while (next && trackIds.length < MAX_ITEMS) {
+  // Walk the cursor-paginated items (20 per page). `include=items,items.artists` returns each
+  // page's tracks *and* their artists, so one request covers 20 tracks completely.
+  const tracks: Track[] = []
+  let next: string | undefined =
+    `/playlists/${id}/relationships/items?countryCode=${COUNTRY}&include=items,items.artists`
+  while (next && tracks.length < MAX_ITEMS) {
     const page = await tidalGet(env, next)
+    const included = page.included ?? []
+    const tracksById = new Map(
+      toTracks({ data: included.filter((r) => r.type === 'tracks'), included }),
+    )
+    // page.data holds the playlist order; videos (type "videos") are skipped.
     for (const item of page.data as Resource[]) {
-      if (item.type === 'tracks') trackIds.push(item.id) // videos are skipped
+      const track = item.type === 'tracks' && tracksById.get(item.id)
+      if (track) tracks.push(track)
     }
     next = page.links?.next
-  }
-
-  // 2. Fetch track details with artists, 20 at a time (the API's filter limit).
-  const tracksById = new Map<string, Track>()
-  for (let i = 0; i < trackIds.length; i += 20) {
-    const query = new URLSearchParams({ countryCode: COUNTRY, include: 'artists' })
-    for (const trackId of trackIds.slice(i, i + 20)) query.append('filter[id]', trackId)
-    const doc = await tidalGet(env, `/tracks?${query}`)
-    for (const [trackId, track] of toTracks(doc)) tracksById.set(trackId, track)
   }
 
   return {
@@ -81,7 +93,7 @@ export async function getTidalPlaylist(env: Env, id: string): Promise<SourcePlay
     id,
     name: String(attrs.name ?? 'Tidal playlist'),
     description: attrs.description ? String(attrs.description) : undefined,
-    tracks: trackIds.flatMap((trackId) => tracksById.get(trackId) ?? []),
+    tracks,
     truncated: Boolean(next),
   }
 }
