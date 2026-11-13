@@ -1,0 +1,293 @@
+:root {
+  --text: #374151;
+  --text-strong: #111827;
+  --muted: #6b7280;
+  --bg: #f3f4f6;
+  --card: #ffffff;
+  --border: #e5e7eb;
+  --accent: #7c3aed;
+  --accent-text: #ffffff;
+  --good: #047857;
+  --good-bg: #d1fae5;
+  --warn: #92400e;
+  --warn-bg: #fef3c7;
+  --bad: #b91c1c;
+  --bad-bg: #fee2e2;
+
+  font:
+    16px/1.5 system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #d1d5db;
+    --text-strong: #f9fafb;
+    --muted: #9ca3af;
+    --bg: #111827;
+    --card: #1f2937;
+    --border: #374151;
+    --accent: #a78bfa;
+    --accent-text: #111827;
+    --good: #6ee7b7;
+    --good-bg: #064e3b;
+    --warn: #fcd34d;
+    --warn-bg: #451a03;
+    --bad: #fca5a5;
+    --bad-bg: #450a0a;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+}
+
+#root {
+  max-width: 40rem;
+  margin: 0 auto;
+  /* Respect the iPhone notch / home indicator when installed. */
+  padding: max(1rem, env(safe-area-inset-top)) 1rem max(2rem, env(safe-area-inset-bottom));
+}
+
+h1,
+h2 {
+  color: var(--text-strong);
+  margin: 0;
+  line-height: 1.2;
+}
+h1 {
+  font-size: 1.5rem;
+}
+h2 {
+  font-size: 1.2rem;
+}
+
+.app-header {
+  margin-bottom: 1rem;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  color: var(--text-strong);
+  margin-bottom: 0.4rem;
+}
+
+input[type='url'],
+input:not([type]) {
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text-strong);
+}
+
+.row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+button,
+.button {
+  font: inherit;
+  font-weight: 600;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-text);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+  white-space: nowrap;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+button.secondary {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+button.link {
+  background: none;
+  padding: 0;
+  color: var(--accent);
+  font-weight: inherit;
+  text-decoration: underline;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.75rem;
+}
+.actions > p {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0.4rem 0 0;
+}
+.center {
+  text-align: center;
+}
+.eyebrow {
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 0.25rem;
+}
+.warning,
+.error {
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+}
+.warning {
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+.error {
+  background: var(--bad-bg);
+  color: var(--bad);
+}
+
+.destinations {
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.destinations legend {
+  font-weight: 600;
+  color: var(--text-strong);
+  margin-bottom: 0.4rem;
+}
+.chip {
+  display: inline-block;
+  margin: 0;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 500;
+}
+.chip input {
+  position: absolute;
+  opacity: 0;
+}
+.chip.selected {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.chip:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+progress {
+  width: 100%;
+  height: 0.75rem;
+  accent-color: var(--accent);
+}
+
+.matches {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+}
+.match label {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.6rem;
+  align-items: start;
+  font-weight: normal;
+  color: var(--text);
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--border);
+  margin: 0;
+}
+.match input {
+  margin-top: 0.25rem;
+}
+.match-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.source-track {
+  color: var(--text-strong);
+}
+.match a {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.badge.exact,
+.badge.high {
+  background: var(--good-bg);
+  color: var(--good);
+}
+.badge.low {
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+.badge.none {
+  background: var(--bad-bg);
+  color: var(--bad);
+}
+
+.create {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.create label {
+  margin: 0;
+}
+
+.success h2 {
+  color: var(--good);
+}
