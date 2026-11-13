@@ -1,0 +1,6 @@
+# Copy to .dev.vars for local dev (never commit .dev.vars). Server-side secrets only.
+TIDAL_CLIENT_ID=
+TIDAL_CLIENT_SECRET=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+YOUTUBE_API_KEY=
