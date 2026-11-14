@@ -4,6 +4,8 @@ A small PWA that converts playlists between **TIDAL**, **Spotify** and **YouTube
 Paste (or, on Android, share) a public playlist link, connect the service you want it on, review the
 matches, and the app creates the playlist in your account.
 
+Completely, unabashedly vibe coded with our pal Claude.
+
 ## How it works
 
 ```
